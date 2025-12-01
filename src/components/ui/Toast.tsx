@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { Toast as ToastType, ToastType as ToastVariant } from '@/contexts/ToastContext';
 
 interface ToastProps {
@@ -35,7 +35,7 @@ const toastStyles: Record<ToastVariant, { bg: string; border: string; text: stri
   },
 };
 
-const icons: Record<ToastVariant, JSX.Element> = {
+const icons: Record<ToastVariant, ReactNode> = {
   success: (
     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
       <path
