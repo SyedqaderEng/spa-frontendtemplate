@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom';
 
+// Configure React act environment for testing
+declare global {
+  // eslint-disable-next-line no-var
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -43,11 +50,14 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 const originalError = console.error;
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
-    ) {
-      return;
+    if (typeof args[0] === 'string') {
+      // Suppress known React testing warnings
+      if (
+        args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+        args[0].includes('not configured to support act')
+      ) {
+        return;
+      }
     }
     originalError.call(console, ...args);
   };
