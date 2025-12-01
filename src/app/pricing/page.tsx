@@ -1,16 +1,45 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { BaseLayout } from '@/components/layout';
 import { PricingCard } from '@/components/pricing';
 import { PLANS } from '@/types/plan';
 import { usePlanName } from '@/store';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { createCheckoutSession, redirectToCheckout } from '@/services/subscription';
 
 export default function PricingPage() {
+  const router = useRouter();
   const currentPlanName = usePlanName();
+  const { isAuthenticated } = useAuth();
+  const { showError, showInfo } = useToast();
+  const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
 
-  const handleSubscribe = (planId: string) => {
-    // This will be implemented in P-F-7
-    console.log('Subscribe to plan:', planId);
+  const handleSubscribe = async (planId: string) => {
+    // If not authenticated, redirect to sign in
+    if (!isAuthenticated) {
+      router.push(`/sign-in?redirect=/pricing&plan=${planId}`);
+      return;
+    }
+
+    // For free plan, just show a message
+    if (planId === 'plan_free') {
+      showInfo('You are already on the free plan!');
+      return;
+    }
+
+    setLoadingPlanId(planId);
+
+    try {
+      const { checkoutUrl } = await createCheckoutSession(planId);
+      redirectToCheckout(checkoutUrl);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start checkout';
+      showError(errorMessage);
+      setLoadingPlanId(null);
+    }
   };
 
   return (
@@ -34,6 +63,7 @@ export default function PricingPage() {
                 key={plan.id}
                 plan={plan}
                 isCurrentPlan={plan.name === currentPlanName}
+                isLoading={loadingPlanId === plan.id}
                 onSubscribe={handleSubscribe}
               />
             ))}
