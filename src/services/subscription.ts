@@ -1,4 +1,5 @@
 import { post } from '@/lib/api-client';
+import type { PlanName } from '@/types/subscription';
 
 export interface CheckoutSessionRequest {
   planId: string;
@@ -9,6 +10,12 @@ export interface CheckoutSessionRequest {
 export interface CheckoutSessionResponse {
   checkoutUrl: string;
   sessionId: string;
+}
+
+export interface SubscriptionStatusResponse {
+  planName: PlanName;
+  isActive: boolean;
+  currentPeriodEnd: string | null;
 }
 
 /**
@@ -45,12 +52,8 @@ export function redirectToCheckout(checkoutUrl: string): void {
 /**
  * Gets the current user's subscription status
  */
-export async function getSubscriptionStatus(): Promise<{
-  planName: string;
-  isActive: boolean;
-  currentPeriodEnd: string | null;
-}> {
-  return post('/subscriptions/status', {});
+export async function getSubscriptionStatus(): Promise<SubscriptionStatusResponse> {
+  return post<SubscriptionStatusResponse>('/subscriptions/status', {});
 }
 
 /**
